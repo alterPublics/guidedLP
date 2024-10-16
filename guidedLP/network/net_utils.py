@@ -235,15 +235,6 @@ def remap_nodes_based_on_category(df,node_mapping,keep_self_loops=False):
 		df = df.filter(pl.col("e")!=pl.col("o"))
 	return df
 
-def remove_url_from_text(t1):
-
-	t1 = re.sub(r'https?://[^\s]+', '', t1)
-	#t1 = re.sub(r'^https?:\/\/.*[\r\n]*', '', t1, flags=re.MULTILINE)
-	#t1 = re.sub(r'^http?:\/\/.*[\r\n]*', '', t1, flags=re.MULTILINE)
-	#t1 = re.sub(r'^https?:\/\/*[\r\n]*', '', t1, flags=re.MULTILINE)
-	#t1 = re.sub(r'^http?:\/\/*[\r\n]*', '', t1, flags=re.MULTILINE)
-	return t1
-
 def chunks(l, n):
 	for i in range(0, n):
 			yield l[i::n]

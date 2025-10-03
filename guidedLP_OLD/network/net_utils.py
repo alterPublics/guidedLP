@@ -504,7 +504,7 @@ def noise_corrected(df, undirected = True,weight="weight"):
 	df = df.with_columns((((pl.col("o_sum") * pl.col("e_sum")) / pl.col("n..")) * (1 / pl.col("n..")) ).alias("mean_prior_probability"))
 	df = df.with_columns((pl.col("n..")/(pl.col("o_sum")*pl.col("e_sum"))).alias("kappa"))
 	df = df.with_columns((((pl.col("kappa")*pl.col(weight))-1)/((pl.col("kappa")*pl.col(weight))+1)).alias("score"))
-	df = df.with_columns(((1/(pl.col("n..")**2))*(pl.col("o_sum")*pl.col("e_sum")*(pl.col("n..")-pl.col("o_sum"))*(pl.col("n..")-pl.col("e_sum")))/((pl.col("n..")**2)*(pl.col("n..")-1))).alias("var_prior_probability"))
+	df = df.with_columns(((1/(pl.col("n..")**2))*(pl.col("o_sum">)*pl.col("e_sum")*(pl.col("n..")-pl.col("o_sum"))*(pl.col("n..")-pl.col("e_sum")))/((pl.col("n..")**2)*(pl.col("n..")-1))).alias("var_prior_probability"))
 	df = df.with_columns((((pl.col("mean_prior_probability")**2)/pl.col("var_prior_probability"))*(1-pl.col("mean_prior_probability"))-pl.col("mean_prior_probability")).alias("alpha_prior"))
 	df = df.with_columns(((pl.col("mean_prior_probability")/pl.col("var_prior_probability"))*(1-(pl.col("mean_prior_probability")**2))-(1-pl.col("mean_prior_probability"))).alias("beta_prior"))
 	df.drop_in_place("mean_prior_probability")

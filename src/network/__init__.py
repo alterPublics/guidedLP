@@ -8,7 +8,7 @@ This module provides core network analysis capabilities:
 - Community detection using Louvain algorithm with consensus and stability analysis
 - Network filtering by various criteria (degree, weight, centrality, components)
 - Network backboning using disparity filter and other statistical methods
-- Graph export functionality (planned)
+- Graph export functionality (GEXF, GraphML, edgelist, parquet formats)
 """
 
 # Network construction functions
@@ -41,5 +41,8 @@ from .filtering import (
     get_backbone_statistics
 )
 
-# Imports will be added as modules are implemented
-# from .export import export_graph
+# Graph export functions
+from .export import (
+    export_graph,
+    get_export_info
+)

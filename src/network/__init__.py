@@ -6,7 +6,8 @@ This module provides core network analysis capabilities:
 - Bipartite graph projection
 - Centrality measure calculations (degree, betweenness, closeness, eigenvector, pagerank, katz)
 - Community detection using Louvain algorithm with consensus and stability analysis
-- Network backboning and filtering (planned)
+- Network filtering by various criteria (degree, weight, centrality, components)
+- Network backboning using disparity filter and other statistical methods
 - Graph export functionality (planned)
 """
 
@@ -33,7 +34,12 @@ from .communities import (
     identify_stable_communities
 )
 
+# Network filtering and backboning functions
+from .filtering import (
+    filter_graph,
+    apply_backbone,
+    get_backbone_statistics
+)
+
 # Imports will be added as modules are implemented
-# from .backboning import apply_backbone
-# from .filtering import filter_graph
 # from .export import export_graph

@@ -7,6 +7,8 @@ This module implements the core GLP algorithm for semi-supervised community dete
 - Matrix-based efficient propagation using sparse matrices
 - Train/test split evaluation framework
 - External validation set testing
+- Utility functions for seed balancing and parameter tuning
+- Result analysis and directional comparison tools
 """
 
 # Core propagation functions
@@ -23,5 +25,15 @@ from .validation import (
     get_validation_summary
 )
 
-# Additional modules will be added as they are implemented
-# from .evaluation import GLPEvaluator
+# Utility functions
+from .utils import (
+    create_balanced_seed_set,
+    suggest_alpha_value,
+    get_seed_statistics
+)
+
+# Evaluation functions
+from .evaluation import (
+    analyze_label_distribution,
+    compare_directional_results
+)

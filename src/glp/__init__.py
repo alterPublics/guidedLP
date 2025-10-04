@@ -9,7 +9,12 @@ This module implements the core GLP algorithm for semi-supervised community dete
 - External validation set testing
 """
 
-# Imports will be added as modules are implemented
-# from .propagation import GuidedLabelPropagation
+# Core propagation functions
+from .propagation import (
+    guided_label_propagation,
+    get_propagation_info
+)
+
+# Additional modules will be added as they are implemented
 # from .validation import GLPValidator
 # from .evaluation import GLPEvaluator

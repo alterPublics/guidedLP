@@ -15,6 +15,13 @@ from .propagation import (
     get_propagation_info
 )
 
+# Validation functions
+from .validation import (
+    train_test_split_validation,
+    external_validation,
+    cross_validate,
+    get_validation_summary
+)
+
 # Additional modules will be added as they are implemented
-# from .validation import GLPValidator
 # from .evaluation import GLPEvaluator

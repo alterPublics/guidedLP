@@ -57,10 +57,10 @@ Repository = "https://github.com/yourusername/guided-label-propagation.git"
 Issues = "https://github.com/yourusername/guided-label-propagation/issues"
 
 [tool.setuptools.packages.find]
-where = ["guidedLP/src"]
+where = ["src"]
 
 [tool.setuptools.package-dir]
-"" = "guidedLP/src"
+"" = "src"
 
 [tool.ruff]
 line-length = 88
@@ -121,7 +121,7 @@ module = "networkit.*"
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-testpaths = ["guidedLP/tests"]
+testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
@@ -132,7 +132,7 @@ filterwarnings = [
 ]
 
 [tool.coverage.run]
-source = ["guidedLP/src"]
+source = ["src"]
 omit = [
     "*/tests/*",
     "*/test_*.py",

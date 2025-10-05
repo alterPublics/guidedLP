@@ -1,0 +1,49 @@
+# Coverage configuration for Guided Label Propagation library
+# Optimized for scientific computing code coverage
+
+[run]
+source = src
+omit = 
+    */tests/*
+    */test_*
+    */__init__.py
+    */setup.py
+    */conftest.py
+    */examples/*
+    build/*
+    dist/*
+    .eggs/*
+    .tox/*
+    .venv/*
+
+branch = True
+parallel = True
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if self.debug:
+    if settings.DEBUG
+    raise AssertionError
+    raise NotImplementedError
+    if 0:
+    if __name__ == .__main__.:
+    class .*\bProtocol\):
+    @(abc\.)?abstractmethod
+    # Scientific computing specific exclusions
+    except ImportError:
+    # C++ binding error handling
+    except.*Error:.*# NetworkIt
+
+show_missing = True
+precision = 2
+skip_covered = False
+skip_empty = True
+
+[html]
+directory = htmlcov
+title = Guided Label Propagation Coverage Report
+
+[xml]
+output = coverage.xml

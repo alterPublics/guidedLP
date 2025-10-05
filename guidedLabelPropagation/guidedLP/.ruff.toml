@@ -1,0 +1,237 @@
+# Ruff configuration for Guided Label Propagation library
+# Optimized for scientific computing and network analysis
+
+[tool.ruff]
+# Target Python 3.9+ for broad compatibility
+target-version = "py39"
+line-length = 88
+indent-width = 4
+
+# Source and test directories
+src = ["src", "tests", "examples"]
+exclude = [
+    ".bzr",
+    ".direnv", 
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+    "docs/_build",
+    "*.ipynb",  # Jupyter notebooks often have different formatting needs
+]
+
+[tool.ruff.lint]
+# Enable rule categories appropriate for scientific computing
+select = [
+    # Core Python best practices
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings  
+    "F",    # pyflakes
+    "I",    # isort
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "YTT",  # flake8-2020
+    "ASYNC", # flake8-async
+    "S",    # bandit (security)
+    "BLE",  # flake8-blind-except
+    "FBT",  # flake8-boolean-trap
+    "B",    # flake8-bugbear
+    "A",    # flake8-builtins
+    "COM",  # flake8-commas
+    "C4",   # flake8-comprehensions
+    "DTZ",  # flake8-datetimez
+    "T10",  # flake8-debugger
+    "EM",   # flake8-errmsg
+    "EXE",  # flake8-executable
+    "FA",   # flake8-future-annotations
+    "ISC",  # flake8-implicit-str-concat
+    "ICN",  # flake8-import-conventions
+    "G",    # flake8-logging-format
+    "INP",  # flake8-no-pep420
+    "PIE",  # flake8-pie
+    "T20",  # flake8-print
+    "PYI",  # flake8-pyi
+    "PT",   # flake8-pytest-style
+    "Q",    # flake8-quotes
+    "RSE",  # flake8-raise
+    "RET",  # flake8-return
+    "SLF",  # flake8-self
+    "SLOT", # flake8-slots
+    "SIM",  # flake8-simplify
+    "TID",  # flake8-tidy-imports
+    "TCH",  # flake8-type-checking
+    "INT",  # flake8-gettext
+    "ARG",  # flake8-unused-arguments
+    "PTH",  # flake8-use-pathlib
+    "ERA",  # eradicate
+    "PD",   # pandas-vet
+    "PGH",  # pygrep-hooks
+    "PL",   # pylint
+    "TRY",  # tryceratops
+    "FLY",  # flynt
+    "NPY",  # numpy specific rules
+    "PERF", # performance anti-patterns
+    "FURB", # refurb
+    "LOG",  # logging
+    "RUF",  # ruff-specific rules
+]
+
+# Ignore rules that conflict with scientific computing practices
+ignore = [
+    # Allow complex algorithms common in scientific computing
+    "C901",   # function is too complex
+    "PLR0912", # too many branches
+    "PLR0913", # too many arguments  
+    "PLR0915", # too many statements
+    "PLR2004", # magic value comparison (common in scientific constants)
+    
+    # Allow performance patterns used in numerical computing
+    "PERF203", # try-except in loop (sometimes needed for numerical stability)
+    "PERF401", # manual list comprehension (sometimes clearer for complex operations)
+    
+    # Allow scientific naming conventions
+    "N803",   # argument name should be lowercase (allow single letter math variables)
+    "N806",   # variable should be lowercase (allow matrix names like A, P, Y)
+    "N999",   # invalid module name (allow underscore module names)
+    
+    # Allow boolean traps for scientific APIs where flags are common
+    "FBT001", # boolean positional arg (common in scientific APIs)
+    "FBT002", # boolean default arg (common in scientific APIs)
+    
+    # Allow print statements in examples and debugging
+    "T201",   # print found (allow in examples and debug code)
+    
+    # Allow raising without from for custom scientific exceptions
+    "TRY200", # raise without from (sometimes appropriate for domain exceptions)
+    "TRY003", # avoid long exception messages (scientific error context can be detailed)
+    
+    # Allow some pandas/numpy patterns that conflict with general rules
+    "PD901",  # avoid generic variable names like df (sometimes appropriate)
+    "NPY002", # legacy random API (allow for compatibility)
+    
+    # Allow longer lines for scientific formulas and complex type annotations
+    "E501",   # line too long (handled by formatter)
+    
+    # Allow star imports for scientific libraries (common pattern)
+    "F405",   # name may be undefined due to star import
+    "F403",   # star import used; unable to detect undefined names
+    
+    # Allow assert statements in tests and validation code
+    "S101",   # use of assert (common in tests and validation)
+    
+    # Allow subprocess usage for running external tools
+    "S603",   # subprocess call without shell=True
+    "S607",   # starting a process with a partial executable path
+    
+    # Allow broad except in some network analysis contexts
+    "BLE001", # blind except Exception (sometimes needed for C++ bindings)
+    
+    # Allow global statements for scientific computing patterns
+    "PLW0603", # using global statement (sometimes needed for configuration)
+    
+    # Allow unused arguments in abstract methods and callbacks
+    "ARG001", # unused function argument (common in abstract methods)
+    "ARG002", # unused method argument (common in callbacks)
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Test files can be more lenient
+"tests/**/*.py" = [
+    "S101",    # allow assert in tests
+    "PLR2004", # allow magic values in tests
+    "ARG001",  # allow unused arguments in test fixtures
+    "SLF001",  # allow private member access in tests
+]
+
+# Example files can have different standards
+"examples/**/*.py" = [
+    "T201",    # allow print statements
+    "INP001",  # allow implicit namespace packages
+    "S101",    # allow assert statements for demonstration
+    "PLR2004", # allow magic values for clarity
+]
+
+# Allow more flexibility in __init__.py files
+"**/__init__.py" = [
+    "F401",    # imported but unused (re-exports)
+    "E402",    # module level import not at top
+]
+
+# Configuration and setup files
+"setup.py" = ["ALL"]
+"conftest.py" = ["ALL"]
+
+[tool.ruff.lint.isort]
+# Scientific computing import conventions
+known-first-party = ["guided_lp", "src"]
+known-third-party = [
+    "networkit", "polars", "numpy", "scipy", "sklearn", 
+    "matplotlib", "pandas", "pytest"
+]
+section-order = [
+    "future", "standard-library", "third-party", 
+    "first-party", "local-folder"
+]
+split-on-trailing-comma = true
+force-single-line = false
+
+[tool.ruff.lint.flake8-import-conventions]
+# Enforce standard scientific library aliases
+[tool.ruff.lint.flake8-import-conventions.aliases]
+numpy = "np"
+pandas = "pd" 
+polars = "pl"
+matplotlib = "mpl"
+"matplotlib.pyplot" = "plt"
+seaborn = "sns"
+networkit = "nk"
+scipy = "sp"
+"scipy.sparse" = "sparse"
+
+[tool.ruff.lint.flake8-pytest-style]
+# Configure pytest style checking
+fixture-parentheses = false
+mark-parentheses = false
+parametrize-names-type = "tuple"
+
+[tool.ruff.lint.pylint]
+# Increase limits for scientific computing
+max-args = 8  # Scientific functions often need many parameters
+max-branches = 15  # Algorithm implementations can be complex
+max-returns = 8
+max-statements = 60
+
+[tool.ruff.lint.mccabe]
+# Allow higher complexity for scientific algorithms
+max-complexity = 12
+
+[tool.ruff.lint.flake8-type-checking]
+# Optimize type checking imports
+runtime-evaluated-base-classes = [
+    "pydantic.BaseModel",
+    "sqlalchemy.ext.declarative.declarative_base",
+]
+
+[tool.ruff.format]
+# Use Black-compatible formatting
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = true
+docstring-code-line-length = "dynamic"

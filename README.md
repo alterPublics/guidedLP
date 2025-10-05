@@ -320,27 +320,23 @@ print(f"Temporal relationships: {influence_graph.numberOfEdges()} edges")
 ## Documentation
 
 ### API Reference
-- [Network Construction](docs/api/network.md) - Graph building and analysis
-- [Guided Label Propagation](docs/api/glp.md) - Core GLP algorithms
-- [Validation](docs/api/validation.md) - Model validation and metrics
-- [Temporal Analysis](docs/api/timeseries.md) - Time-series network analysis
-- [Utilities](docs/api/common.md) - Common utilities and I/O
+- [Network Construction](guidedLP/docs/api/network.md) - Graph building and analysis
+- [Guided Label Propagation](guidedLP/docs/api/glp.md) - Core GLP algorithms
+- [Temporal Analysis](guidedLP/docs/api/timeseries.md) - Time-series network analysis
+- [Common Utilities](guidedLP/docs/api/common.md) - Shared utilities and I/O
 
 ### Guides
-- [Getting Started](docs/getting_started.md) - Detailed tutorial
-- [Architecture Overview](docs/architecture/overview.md) - System design
-- [Performance Guidelines](docs/performance.md) - Optimization tips
-- [Data Formats](docs/data_formats.md) - Input/output specifications
+- [Architecture Overview](guidedLP/docs/architecture/overview.md) - System design
 
 ### Examples
-- [Basic GLP Analysis](examples/example_glp_analysis.py)
-- [Network Analysis](examples/example_network_analysis.py) 
-- [Temporal Networks](examples/example_timeseries.py)
-- [Complete Workflows](examples/)
+- [Basic GLP Analysis](guidedLP/examples/example_glp_analysis.py)
+- [Network Analysis](guidedLP/examples/example_network_analysis.py) 
+- [Temporal Networks](guidedLP/examples/example_timeseries.py)
+- [All Examples](guidedLP/examples/)
 
-### Online Documentation
-- **Full Documentation**: [https://guided-label-propagation.readthedocs.io](https://guided-label-propagation.readthedocs.io)
-- **API Reference**: [https://guided-label-propagation.readthedocs.io/api/](https://guided-label-propagation.readthedocs.io/api/)
+### Additional Documentation
+- [Reference Implementations](guidedLP/docs/reference_implementations.md) - Background and inspirations
+- [Technical Requirements](guidedLP/docs/tech_requirements.md) - System specifications
 
 ## System Requirements
 
@@ -363,7 +359,7 @@ print(f"Temporal relationships: {influence_graph.numberOfEdges()} edges")
 
 ## Contributing
 
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+We welcome contributions! Please feel free to:
 
 ### Quick Start for Contributors
 

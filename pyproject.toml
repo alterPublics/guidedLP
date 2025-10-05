@@ -58,8 +58,9 @@ Repository = "https://github.com/yourusername/guided-label-propagation.git"
 Issues = "https://github.com/yourusername/guided-label-propagation/issues"
 
 [tool.setuptools]
-packages = ["guidedLP"]
-package-dir = {"guidedLP" = "guidedLP/src/guidedLP"}
+packages = ["guidedLP", "guidedLP.common", "guidedLP.glp", "guidedLP.network", "guidedLP.timeseries"]
+package-dir = {"" = "guidedLP/src"}
+include-package-data = true
 
 [tool.setuptools.package-data]
 "*" = ["*.md", "*.txt", "*.yml", "*.yaml"]

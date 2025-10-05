@@ -1,1 +1,0 @@
-"""Tests for the Guided Label Propagation module."""

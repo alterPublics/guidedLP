@@ -48,7 +48,10 @@ def guided_label_propagation(
     convergence_threshold: float = 1e-6,
     normalize: bool = True,
     directional: bool = True,
-    n_jobs: int = 1
+    n_jobs: int = 1,
+    enable_noise_category: bool = False,
+    noise_ratio: float = 0.1,
+    confidence_threshold: float = 0.0
 ) -> Union[pl.DataFrame, Tuple[pl.DataFrame, pl.DataFrame]]:
     """
     Propagate labels from seed nodes through network using guided label propagation.
@@ -91,6 +94,15 @@ def guided_label_propagation(
         For directed graphs, compute both out-degree and in-degree propagation
     n_jobs : int, default 1
         Number of parallel jobs (reserved for future multi-label parallelization)
+    enable_noise_category : bool, default True
+        Automatically add a "noise" category for nodes with weak label associations.
+        Helps identify outlier nodes and improves classification confidence.
+    noise_ratio : float, default 0.1
+        Fraction of non-seed nodes to randomly assign as noise seeds (0.0-1.0).
+        Only used when enable_noise_category=True.
+    confidence_threshold : float, default 0.0
+        Minimum probability threshold for classification. Nodes with max probability
+        below this threshold are classified as "uncertain" (0.0-1.0).
     
     Returns
     -------
@@ -148,7 +160,13 @@ def guided_label_propagation(
     
     # Validate inputs
     _validate_inputs(graph, id_mapper, seed_labels, labels, alpha, 
-                    max_iterations, convergence_threshold)
+                    max_iterations, convergence_threshold, enable_noise_category,
+                    noise_ratio, confidence_threshold)
+    
+    # Process labels and seeds with noise category support
+    processed_labels, processed_seed_labels = _process_noise_category(
+        graph, id_mapper, seed_labels, labels, enable_noise_category, noise_ratio
+    )
     
     # Check if graph is directed
     is_directed = graph.isDirected()
@@ -158,10 +176,15 @@ def guided_label_propagation(
     # For undirected graphs or directional=False, run single propagation
     if not is_directed or not directional:
         result = _run_single_propagation(
-            graph, id_mapper, seed_labels, labels, alpha,
+            graph, id_mapper, processed_seed_labels, processed_labels, alpha,
             max_iterations, convergence_threshold, normalize,
             direction="undirected" if not is_directed else "out_degree"
         )
+        
+        # Apply confidence thresholding if enabled
+        if confidence_threshold > 0.0:
+            result = _apply_confidence_threshold(result, confidence_threshold)
+        
         logger.info("Completed single propagation")
         return result
     
@@ -171,17 +194,22 @@ def guided_label_propagation(
         
         # Out-degree propagation (influence)
         out_result = _run_single_propagation(
-            graph, id_mapper, seed_labels, labels, alpha,
+            graph, id_mapper, processed_seed_labels, processed_labels, alpha,
             max_iterations, convergence_threshold, normalize,
             direction="out_degree"
         )
         
         # In-degree propagation (receptivity) - use transposed adjacency
         in_result = _run_single_propagation(
-            graph, id_mapper, seed_labels, labels, alpha,
+            graph, id_mapper, processed_seed_labels, processed_labels, alpha,
             max_iterations, convergence_threshold, normalize,
             direction="in_degree"
         )
+        
+        # Apply confidence thresholding if enabled
+        if confidence_threshold > 0.0:
+            out_result = _apply_confidence_threshold(out_result, confidence_threshold)
+            in_result = _apply_confidence_threshold(in_result, confidence_threshold)
         
         logger.info("Completed directional propagation")
         return out_result, in_result
@@ -194,7 +222,10 @@ def _validate_inputs(
     labels: List[str],
     alpha: float,
     max_iterations: int,
-    convergence_threshold: float
+    convergence_threshold: float,
+    enable_noise_category: bool,
+    noise_ratio: float,
+    confidence_threshold: float
 ) -> None:
     """Validate all input parameters."""
     
@@ -223,6 +254,31 @@ def _validate_inputs(
     
     if len(set(labels)) != len(labels):
         raise ValidationError("Labels list contains duplicates")
+    
+    # Warn about single label scenarios
+    if len(labels) == 1 and not enable_noise_category:
+        warnings.warn(
+            "GLP with single label provides limited discriminative power. "
+            "Consider enabling noise category or adding additional labels.",
+            UserWarning
+        )
+    
+    # Validate noise category parameters
+    if enable_noise_category:
+        if not 0.0 <= noise_ratio <= 1.0:
+            raise ConfigurationError(
+                f"Noise ratio must be between 0.0 and 1.0, got {noise_ratio}",
+                parameter="noise_ratio",
+                value=noise_ratio
+            )
+    
+    # Validate confidence threshold
+    if not 0.0 <= confidence_threshold <= 1.0:
+        raise ConfigurationError(
+            f"Confidence threshold must be between 0.0 and 1.0, got {confidence_threshold}",
+            parameter="confidence_threshold",
+            value=confidence_threshold
+        )
     
     # Validate seed_labels
     if not seed_labels:
@@ -827,3 +883,174 @@ def get_propagation_info(
         "computational_estimate": computational_estimate,
         "potential_issues": potential_issues
     }
+
+
+def _process_noise_category(
+    graph: nk.Graph,
+    id_mapper: IDMapper,
+    seed_labels: Dict[Any, str],
+    labels: List[str],
+    enable_noise_category: bool,
+    noise_ratio: float
+) -> Tuple[List[str], Dict[Any, str]]:
+    """
+    Process labels and seed labels to include noise category if enabled.
+    
+    This function implements the noise category functionality from reference 
+    implementations, automatically adding a "noise" category and generating
+    noise seeds to improve classification robustness.
+    
+    Parameters
+    ----------
+    graph : nk.Graph
+        NetworkIt graph
+    id_mapper : IDMapper
+        ID mapper for the graph
+    seed_labels : Dict[Any, str]
+        Original seed labels mapping
+    labels : List[str]
+        Original labels list
+    enable_noise_category : bool
+        Whether to add noise category
+    noise_ratio : float
+        Fraction of non-seed nodes to use as noise seeds
+    
+    Returns
+    -------
+    processed_labels : List[str]
+        Labels list with noise category added if enabled
+    processed_seed_labels : Dict[Any, str]
+        Seed labels with noise seeds added if enabled
+    
+    Notes
+    -----
+    Noise seeds are randomly sampled from non-seed nodes to provide
+    the algorithm with examples of nodes that don't belong to any
+    specific category. This improves classification confidence and
+    helps identify outlier nodes.
+    """
+    import random
+    
+    processed_labels = labels.copy()
+    processed_seed_labels = seed_labels.copy()
+    
+    if not enable_noise_category:
+        return processed_labels, processed_seed_labels
+    
+    # Add noise category if not already present
+    if "noise" not in processed_labels:
+        processed_labels.append("noise")
+        logger.info("Added 'noise' category to labels")
+    
+    # Generate noise seeds if noise category was added
+    if "noise" not in seed_labels.values():
+        noise_seeds = _generate_noise_seeds(
+            graph, id_mapper, seed_labels, noise_ratio
+        )
+        processed_seed_labels.update(noise_seeds)
+        logger.info(f"Generated {len(noise_seeds)} noise seeds")
+    
+    return processed_labels, processed_seed_labels
+
+
+def _generate_noise_seeds(
+    graph: nk.Graph,
+    id_mapper: IDMapper,
+    seed_labels: Dict[Any, str],
+    noise_ratio: float
+) -> Dict[Any, str]:
+    """
+    Generate noise seeds from non-seed nodes.
+    
+    Randomly samples nodes that are not already in the seed set
+    and assigns them the "noise" label. This provides the algorithm
+    with examples of nodes that don't strongly belong to any category.
+    
+    Parameters
+    ----------
+    graph : nk.Graph
+        NetworkIt graph
+    id_mapper : IDMapper
+        ID mapper for the graph
+    seed_labels : Dict[Any, str]
+        Existing seed labels
+    noise_ratio : float
+        Fraction of non-seed nodes to use as noise seeds
+    
+    Returns
+    -------
+    Dict[Any, str]
+        Mapping of selected nodes to "noise" label
+    """
+    import random
+    
+    # Get all nodes that are not already seeds
+    all_nodes = set(range(graph.numberOfNodes()))
+    seed_node_internals = {id_mapper.get_internal(seed_id) for seed_id in seed_labels.keys()}
+    non_seed_nodes = all_nodes - seed_node_internals
+    
+    if not non_seed_nodes:
+        logger.warning("No non-seed nodes available for noise seed generation")
+        return {}
+    
+    # Calculate number of noise seeds
+    n_existing_seeds = len(seed_labels)
+    n_noise_seeds = max(1, int(noise_ratio * n_existing_seeds))
+    n_noise_seeds = min(n_noise_seeds, len(non_seed_nodes))
+    
+    # Randomly sample noise seeds
+    random.seed(42)  # For reproducibility
+    selected_internal_ids = random.sample(list(non_seed_nodes), n_noise_seeds)
+    
+    # Convert back to original IDs
+    noise_seeds = {}
+    for internal_id in selected_internal_ids:
+        original_id = id_mapper.get_original(internal_id)
+        noise_seeds[original_id] = "noise"
+    
+    logger.debug(f"Selected {len(noise_seeds)} noise seeds from {len(non_seed_nodes)} candidates")
+    return noise_seeds
+
+
+def _apply_confidence_threshold(
+    result_df: pl.DataFrame,
+    confidence_threshold: float
+) -> pl.DataFrame:
+    """
+    Apply confidence thresholding to classification results.
+    
+    Nodes with maximum probability below the threshold are reclassified
+    as "uncertain", providing a mechanism to identify low-confidence
+    predictions that should not be trusted.
+    
+    Parameters
+    ----------
+    result_df : pl.DataFrame
+        Results DataFrame from GLP
+    confidence_threshold : float
+        Minimum confidence threshold (0.0-1.0)
+    
+    Returns
+    -------
+    pl.DataFrame
+        Results with uncertain classifications applied
+    """
+    if confidence_threshold <= 0.0:
+        return result_df
+    
+    # Identify low-confidence nodes
+    low_confidence_mask = result_df["confidence"] < confidence_threshold
+    n_uncertain = low_confidence_mask.sum()
+    
+    if n_uncertain > 0:
+        # Update dominant label for low-confidence nodes
+        result_df = result_df.with_columns([
+            pl.when(pl.col("confidence") < confidence_threshold)
+            .then(pl.lit("uncertain"))
+            .otherwise(pl.col("dominant_label"))
+            .alias("dominant_label")
+        ])
+        
+        logger.info(f"Classified {n_uncertain} nodes as 'uncertain' due to low confidence")
+    
+    return result_df

@@ -35,42 +35,118 @@ This project provides efficient network analysis capabilities with a focus on **
 
 ## Installation
 
+### Prerequisites
+
+- Python 3.9 or higher
+- Git (for development installation)
+
+### From PyPI (Recommended)
+
+```bash
+pip install guided-label-propagation
+```
+
+### From Source (Development)
+
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/guided-label-propagation.git
 cd guided-label-propagation
 
-# Install with pip
+# Install in development mode
 pip install -e .
 
-# Or install with development dependencies
-pip install -e ".[dev]"
+# Or install with all optional dependencies
+pip install -e ".[dev,docs,viz]"
+```
+
+### Optional Dependencies
+
+```bash
+# For visualization capabilities
+pip install "guided-label-propagation[viz]"
+
+# For development and testing
+pip install "guided-label-propagation[dev]"
+
+# For documentation building
+pip install "guided-label-propagation[docs]"
+```
+
+### Verify Installation
+
+```bash
+python -c "import guided_lp; print('Installation successful!')"
 ```
 
 ## Quick Start
 
+### Basic Example
+
 ```python
 import polars as pl
-from guided_lp import NetworkBuilder, GuidedLabelPropagation
+from src.network.construction import build_graph_from_edgelist
+from src.glp.propagation import guided_label_propagation
+from src.common.io_utils import export_results
 
 # Load edge list data
 edges = pl.read_csv("network_data.csv")
 
 # Build network
-builder = NetworkBuilder()
-graph, id_mapper = builder.from_edge_list(
+graph, id_mapper = build_graph_from_edgelist(
     edges, 
     source_col="user_a", 
-    target_col="user_b"
+    target_col="user_b",
+    weight_col="weight"  # optional
 )
 
+# Define seed nodes for each community
+seed_nodes = {
+    "progressive": ["user123", "user456", "user789"],
+    "conservative": ["user321", "user654", "user987"]
+}
+
 # Run Guided Label Propagation
-glp = GuidedLabelPropagation(graph, id_mapper)
-seed_nodes = {"progressive": ["user123", "user456"], "conservative": ["user789"]}
-probabilities = glp.propagate(seed_nodes, max_iterations=100)
+results = guided_label_propagation(
+    graph=graph,
+    seeds=seed_nodes,
+    id_mapper=id_mapper,
+    max_iterations=100,
+    threshold=0.01
+)
 
 # Export results
-glp.export_probabilities(probabilities, "affiliation_scores.csv")
+export_results(results, "political_affiliation_scores.csv")
+print(f"Classified {len(results)} nodes with community probabilities")
+```
+
+### Using Test Fixtures
+
+Try the library with sample data:
+
+```python
+import polars as pl
+from src.network.construction import build_graph_from_edgelist
+from src.glp.propagation import guided_label_propagation
+import json
+
+# Load sample datasets
+edges = pl.read_csv("tests/fixtures/sample_edgelist.csv")
+with open("tests/fixtures/sample_seeds.json", "r") as f:
+    seeds = json.load(f)
+
+# Convert seeds to proper format
+seed_nodes = {}
+for node, community in seeds.items():
+    if community not in seed_nodes:
+        seed_nodes[community] = []
+    seed_nodes[community].append(node)
+
+# Build graph and run GLP
+graph, id_mapper = build_graph_from_edgelist(edges, "source", "target", "weight")
+results = guided_label_propagation(graph, seed_nodes, id_mapper)
+
+print(f"Sample analysis complete: {len(results)} nodes classified")
 ```
 
 ## Architecture
@@ -97,49 +173,221 @@ src/
 - **Memory usage**: Sparse matrices for networks with >50% zero entries
 - **Parallel support**: Multi-threaded centrality calculations and time-slicing
 
+## Examples
+
+### 1. Political Affiliation Analysis
+
+```python
+# Analyze political leaning in social networks
+from src.glp.validation import train_test_split_validation
+
+# Load political Twitter network
+political_edges = pl.read_csv("political_network.csv")
+graph, id_mapper = build_graph_from_edgelist(
+    political_edges, "follower", "following"
+)
+
+# Define known political accounts as seeds
+political_seeds = {
+    "progressive": ["@aoc", "@berniesanders", "@ewarren"],
+    "conservative": ["@realdonaldtrump", "@tedcruz", "@marcorubio"]
+}
+
+# Run validation to test accuracy
+accuracy, metrics = train_test_split_validation(
+    graph=graph,
+    seeds=political_seeds,
+    id_mapper=id_mapper,
+    test_size=0.2
+)
+
+print(f"Political classification accuracy: {accuracy:.3f}")
+```
+
+### 2. Temporal Network Analysis
+
+```python
+# Track community evolution over time
+from src.timeseries.slicing import create_time_slices
+from src.timeseries.metrics import calculate_temporal_metrics
+
+# Load temporal network data
+temporal_data = pl.read_csv("tests/fixtures/sample_temporal.csv")
+
+# Create time slices
+time_slices = create_time_slices(
+    temporal_data,
+    time_col="timestamp",
+    slice_duration="1d"  # daily slices
+)
+
+# Analyze each time slice
+for date, slice_edges in time_slices.items():
+    graph, id_mapper = build_graph_from_edgelist(
+        slice_edges, "source", "target", "weight"
+    )
+    
+    results = guided_label_propagation(graph, seeds, id_mapper)
+    print(f"{date}: {len(results)} nodes classified")
+```
+
+### 3. Academic Collaboration Networks
+
+```python
+# Map research communities in citation networks
+academic_edges = pl.read_csv("collaboration_network.csv")
+graph, id_mapper = build_graph_from_edgelist(
+    academic_edges, "author_a", "author_b", "num_collaborations"
+)
+
+# Use known department affiliations as seeds
+department_seeds = {
+    "computer_science": ["researcher1", "researcher2"],
+    "biology": ["researcher3", "researcher4"],
+    "physics": ["researcher5", "researcher6"]
+}
+
+results = guided_label_propagation(graph, department_seeds, id_mapper)
+
+# Analyze interdisciplinary collaboration
+for node_id, probabilities in results.items():
+    if max(probabilities.values()) < 0.7:  # Low confidence
+        print(f"{node_id}: Likely interdisciplinary researcher")
+```
+
 ## Use Cases
 
-### Political Affiliation Analysis
-Identify political leaning of unknown users based on known partisan seed accounts.
-
-### Brand Affinity Detection  
-Determine brand preferences in social networks using verified brand accounts as seeds.
-
-### Research Community Mapping
-Map academic collaboration networks and identify research area affiliations.
-
-### Temporal Network Evolution
-Track how community structures evolve over time in dynamic networks.
+- **Political Affiliation Analysis**: Identify political leaning of unknown users based on known partisan seed accounts
+- **Brand Affinity Detection**: Determine brand preferences in social networks using verified brand accounts as seeds  
+- **Research Community Mapping**: Map academic collaboration networks and identify research area affiliations
+- **Temporal Network Evolution**: Track how community structures evolve over time in dynamic networks
+- **Content Recommendation**: Classify users for targeted content delivery
+- **Fraud Detection**: Identify suspicious accounts based on known fraudulent patterns
 
 ## Documentation
 
-- [Architecture Overview](docs/architecture/overview.md)
-- [API Reference](docs/api/)
-- [Performance Guidelines](docs/performance.md)
-- [Examples](examples/)
+### API Reference
+- [Network Construction](docs/api/network.md) - Graph building and analysis
+- [Guided Label Propagation](docs/api/glp.md) - Core GLP algorithms
+- [Validation](docs/api/validation.md) - Model validation and metrics
+- [Temporal Analysis](docs/api/timeseries.md) - Time-series network analysis
+- [Utilities](docs/api/common.md) - Common utilities and I/O
 
-## Requirements
+### Guides
+- [Getting Started](docs/getting_started.md) - Detailed tutorial
+- [Architecture Overview](docs/architecture/overview.md) - System design
+- [Performance Guidelines](docs/performance.md) - Optimization tips
+- [Data Formats](docs/data_formats.md) - Input/output specifications
 
-- Python 3.9+
-- NetworkIt 11.0+
-- Polars 0.20.0+
-- NumPy 1.24.0+
-- SciPy 1.10.0+
+### Examples
+- [Basic GLP Analysis](examples/example_glp_analysis.py)
+- [Network Analysis](examples/example_network_analysis.py) 
+- [Temporal Networks](examples/example_timeseries.py)
+- [Complete Workflows](examples/)
+
+### Online Documentation
+- **Full Documentation**: [https://guided-label-propagation.readthedocs.io](https://guided-label-propagation.readthedocs.io)
+- **API Reference**: [https://guided-label-propagation.readthedocs.io/api/](https://guided-label-propagation.readthedocs.io/api/)
+
+## System Requirements
+
+### Core Dependencies
+- **Python**: 3.9 or higher
+- **NetworkIt**: 11.0+ (C++ graph library for performance)
+- **Polars**: 0.20.0+ (Fast DataFrame operations)
+- **NumPy**: 1.24.0+ (Numerical computing)
+- **SciPy**: 1.10.0+ (Sparse matrices and scientific computing)
+
+### Platform Support
+- **Linux**: Full support (recommended for large-scale analysis)
+- **macOS**: Full support 
+- **Windows**: Supported (may require Visual C++ redistributable)
+
+### Performance Notes
+- Minimum 8GB RAM recommended for networks with >10,000 nodes
+- SSD storage recommended for large temporal datasets
+- Multi-core CPU beneficial for parallel operations
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes following the code style (ruff + black)
-4. Add tests for new functionality
-5. Run the test suite (`pytest`)
-6. Commit your changes (`git commit -m 'Add amazing feature'`)
-7. Push to the branch (`git push origin feature/amazing-feature`)
-8. Open a Pull Request
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+
+### Quick Start for Contributors
+
+1. **Fork and Clone**
+   ```bash
+   git clone https://github.com/yourusername/guided-label-propagation.git
+   cd guided-label-propagation
+   ```
+
+2. **Set Up Development Environment**
+   ```bash
+   # Install with all development dependencies
+   pip install -e ".[dev,docs,viz]"
+   
+   # Install pre-commit hooks
+   pre-commit install
+   ```
+
+3. **Run Tests**
+   ```bash
+   # Run all tests
+   pytest
+   
+   # Run with coverage
+   pytest --cov=src --cov-report=html
+   
+   # Run specific test modules
+   pytest tests/glp/test_propagation.py
+   ```
+
+4. **Code Quality**
+   ```bash
+   # Format code
+   black src/ tests/
+   
+   # Lint code
+   ruff check src/ tests/
+   
+   # Type checking
+   mypy src/
+   ```
+
+5. **Development Workflow**
+   - Create feature branch: `git checkout -b feature/amazing-feature`
+   - Make changes following code style (ruff + black)
+   - Add tests for new functionality
+   - Update documentation if needed
+   - Commit changes: `git commit -m 'Add amazing feature'`
+   - Push branch: `git push origin feature/amazing-feature`
+   - Open a Pull Request
+
+### Code Style
+
+- **Formatting**: Black (line length: 88)
+- **Linting**: Ruff with strict settings
+- **Type Hints**: Required for all public functions
+- **Documentation**: Google-style docstrings
+- **Testing**: Pytest with >90% coverage target
+
+### Testing Guidelines
+
+- Write tests for all new features
+- Use the fixtures in `tests/fixtures/` for consistent test data
+- Include integration tests for complete workflows
+- Test edge cases and error conditions
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+### Summary
+- ✅ Commercial use allowed
+- ✅ Modification allowed
+- ✅ Distribution allowed
+- ✅ Private use allowed
+- ❌ No warranty provided
+- ❌ No liability accepted
 
 ## Citation
 
@@ -154,8 +402,22 @@ If you use this software in your research, please cite:
 }
 ```
 
-## Contact
+## Support and Community
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/guided-label-propagation/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/guided-label-propagation/discussions)
+### Getting Help
+- **Documentation**: [https://guided-label-propagation.readthedocs.io](https://guided-label-propagation.readthedocs.io)
+- **GitHub Issues**: [Report bugs and request features](https://github.com/yourusername/guided-label-propagation/issues)
+- **GitHub Discussions**: [Ask questions and share ideas](https://github.com/yourusername/guided-label-propagation/discussions)
+- **Examples**: See the [examples/](examples/) directory
+
+### Stay Updated
+- **Releases**: [GitHub Releases](https://github.com/yourusername/guided-label-propagation/releases)
+- **Changelog**: [CHANGELOG.md](CHANGELOG.md)
+
+### Contact
+- **Maintainers**: [GitHub Team](https://github.com/yourusername/guided-label-propagation/graphs/contributors)
 - **Email**: your.email@example.com
+
+---
+
+**Made with ❤️ for the computational social science community**

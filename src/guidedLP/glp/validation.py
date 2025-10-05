@@ -21,13 +21,13 @@ from sklearn.metrics import (
 import concurrent.futures
 
 from .propagation import guided_label_propagation
-from ..common.id_mapper import IDMapper
-from ..common.exceptions import (
+from guidedLP.common.id_mapper import IDMapper
+from guidedLP.common.exceptions import (
     ValidationError,
     ConfigurationError,
     ComputationError
 )
-from ..common.logging_config import get_logger, LoggingTimer
+from guidedLP.common.logging_config import get_logger, LoggingTimer
 
 logger = get_logger(__name__)
 

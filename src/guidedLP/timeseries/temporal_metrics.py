@@ -15,14 +15,14 @@ import networkit as nk
 import numpy as np
 from scipy import stats
 
-from ..network.analysis import extract_centrality, AVAILABLE_METRICS
-from ..common.id_mapper import IDMapper
-from ..common.exceptions import (
+from guidedLP.network.analysis import extract_centrality, AVAILABLE_METRICS
+from guidedLP.common.id_mapper import IDMapper
+from guidedLP.common.exceptions import (
     ValidationError,
     ConfigurationError,
     ComputationError
 )
-from ..common.logging_config import get_logger, LoggingTimer
+from guidedLP.common.logging_config import get_logger, LoggingTimer
 
 logger = get_logger(__name__)
 

@@ -14,16 +14,16 @@ import polars as pl
 import networkit as nk
 import numpy as np
 
-from ..common.id_mapper import IDMapper
-from ..common.exceptions import (
+from guidedLP.common.id_mapper import IDMapper
+from guidedLP.common.exceptions import (
     GraphConstructionError,
     ValidationError,
     DataFormatError,
     ConfigurationError,
     validate_parameter
 )
-from ..common.validators import validate_edgelist_dataframe
-from ..common.logging_config import get_logger, log_function_entry, LoggingTimer
+from guidedLP.common.validators import validate_edgelist_dataframe
+from guidedLP.common.logging_config import get_logger, log_function_entry, LoggingTimer
 
 logger = get_logger(__name__)
 

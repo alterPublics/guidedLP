@@ -16,15 +16,15 @@ import numpy as np
 import scipy.sparse as sp
 from scipy.stats import norm
 
-from ..common.id_mapper import IDMapper
-from ..common.exceptions import (
+from guidedLP.common.id_mapper import IDMapper
+from guidedLP.common.exceptions import (
     ComputationError,
     ConfigurationError,
     ValidationError,
     validate_parameter,
     require_positive
 )
-from ..common.logging_config import get_logger, log_function_entry, LoggingTimer
+from guidedLP.common.logging_config import get_logger, log_function_entry, LoggingTimer
 
 logger = get_logger(__name__)
 

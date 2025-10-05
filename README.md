@@ -41,29 +41,40 @@ This project provides efficient network analysis capabilities with a focus on **
 - Python 3.9 or higher
 - Git (for development installation)
 
-### Development Installation
+### Installation
 
-This package is currently in development. Install from source:
+Install the package directly with pip:
 
 ```bash
 # Clone the repository
 git clone https://github.com/alterpublics/guided-label-propagation.git
 cd guided-label-propagation/guidedLP
 
-# Install dependencies
-pip install -r requirements.txt
+# Install the package in development mode
+pip install -e .
 
-# Install development dependencies (optional)
+# Or install dependencies separately if needed
+pip install -r requirements.txt
+```
+
+### Development Setup
+
+For development work:
+
+```bash
+# Install development dependencies  
 pip install pytest pytest-cov ruff black mypy
 ```
 
-### Running Examples
+### Verify Installation
 
-All examples should be run from the main package directory:
-cd guided-label-propagation
+After installation, you can verify everything works correctly:
 
-# Install in development mode
-pip install -e .
+```bash
+python test_installation.py
+```
+
+This will test all key functionality and confirm your installation is working properly.
 
 # Or install with all optional dependencies
 pip install -e ".[dev,docs,viz]"
@@ -93,14 +104,9 @@ python -c "import guided_lp; print('Installation successful!')"
 ### Basic Example
 
 ```python
-import sys
 import polars as pl
-
-# Add the source directory to Python path
-sys.path.append('/path/to/guidedLabelPropagation/guidedLP/src')
-
-from network.construction import build_graph_from_edgelist
-from glp.propagation import guided_label_propagation
+from guidedLP.network.construction import build_graph_from_edgelist
+from guidedLP.glp.propagation import guided_label_propagation
 
 # Load edge list data
 edges = pl.read_csv("network_data.csv")
@@ -138,15 +144,10 @@ print(f"Classified {len(results)} nodes with community probabilities")
 Try the library with sample data:
 
 ```python
-import sys
 import polars as pl
 import json
-
-# Add the source directory to Python path  
-sys.path.append('./src')
-
-from network.construction import build_graph_from_edgelist
-from glp.propagation import guided_label_propagation
+from guidedLP.network.construction import build_graph_from_edgelist
+from guidedLP.glp.propagation import guided_label_propagation
 
 # Load sample datasets
 edges = pl.read_csv("tests/fixtures/sample_edgelist.csv")
@@ -196,12 +197,9 @@ src/
 ### 1. Political Affiliation Analysis
 
 ```python
-# Analyze political leaning in social networks  
-import sys
-sys.path.append('./src')
-
-from glp.validation import train_test_split_validation
-from network.construction import build_graph_from_edgelist
+# Analyze political leaning in social networks
+from guidedLP.glp.validation import train_test_split_validation
+from guidedLP.network.construction import build_graph_from_edgelist
 
 # Load political Twitter network
 political_edges = pl.read_csv("political_network.csv")
@@ -230,11 +228,8 @@ print(f"Political classification accuracy: {accuracy:.3f}")
 
 ```python
 # Track community evolution over time
-import sys
-sys.path.append('./src')
-
-from timeseries.slicing import create_time_slices
-from timeseries.temporal_metrics import extract_temporal_metrics
+from guidedLP.timeseries.slicing import create_temporal_slices
+from guidedLP.timeseries.temporal_metrics import extract_temporal_metrics
 
 # Load temporal network data
 temporal_data = pl.read_csv("tests/fixtures/sample_temporal.csv")
@@ -283,12 +278,9 @@ for node_id, probabilities in results.items():
 ### 4. Temporal Bipartite-to-Unipartite Conversion
 
 ```python
-# Convert user-item interactions to user influence networks
-import sys
-sys.path.append('./src')
-
-from network.construction import temporal_bipartite_to_unipartite
+# Convert user-item interactions to user influence networks  
 import polars as pl
+from guidedLP.network.construction import temporal_bipartite_to_unipartite
 
 # Load temporal bipartite data (users interacting with items over time)
 data = pl.DataFrame({

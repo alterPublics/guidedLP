@@ -12,8 +12,8 @@ from typing import Dict, List, Any, Tuple
 import numpy as np
 import polars as pl
 
-from ..common.exceptions import ValidationError
-from ..common.logging_config import get_logger, LoggingTimer
+from guidedLP.common.exceptions import ValidationError
+from guidedLP.common.logging_config import get_logger, LoggingTimer
 
 logger = get_logger(__name__)
 

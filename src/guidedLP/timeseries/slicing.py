@@ -13,14 +13,14 @@ import warnings
 import polars as pl
 import networkit as nk
 
-from ..network.construction import build_graph_from_edgelist
-from ..common.id_mapper import IDMapper
-from ..common.exceptions import (
+from guidedLP.network.construction import build_graph_from_edgelist
+from guidedLP.common.id_mapper import IDMapper
+from guidedLP.common.exceptions import (
     ValidationError,
     DataFormatError,
     ConfigurationError
 )
-from ..common.logging_config import get_logger, LoggingTimer
+from guidedLP.common.logging_config import get_logger, LoggingTimer
 
 logger = get_logger(__name__)
 

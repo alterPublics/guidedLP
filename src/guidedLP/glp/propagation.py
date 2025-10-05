@@ -23,8 +23,8 @@ import scipy.sparse as sp
 import polars as pl
 import networkit as nk
 
-from ..common.id_mapper import IDMapper
-from ..common.exceptions import (
+from guidedLP.common.id_mapper import IDMapper
+from guidedLP.common.exceptions import (
     ValidationError,
     ConfigurationError,
     ConvergenceError,
@@ -33,7 +33,7 @@ from ..common.exceptions import (
     require_positive,
     check_convergence
 )
-from ..common.logging_config import get_logger, LoggingTimer
+from guidedLP.common.logging_config import get_logger, LoggingTimer
 
 logger = get_logger(__name__)
 

@@ -13,12 +13,12 @@ import random
 import numpy as np
 import networkit as nk
 
-from ..common.exceptions import (
+from guidedLP.common.exceptions import (
     ValidationError,
     ConfigurationError,
     ComputationError
 )
-from ..common.logging_config import get_logger, LoggingTimer
+from guidedLP.common.logging_config import get_logger, LoggingTimer
 
 logger = get_logger(__name__)
 

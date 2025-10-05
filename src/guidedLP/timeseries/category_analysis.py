@@ -13,7 +13,7 @@ import warnings
 import polars as pl
 import networkit as nk
 
-from ..common.id_mapper import IDMapper
+from guidedLP.common.id_mapper import IDMapper
 
 
 def analyze_cross_category_connections(
@@ -328,7 +328,7 @@ def analyze_category_centrality_by_time(
     Only nodes present in each time slice are included in calculations.
     Categories with no nodes in a time slice are excluded from that slice.
     """
-    from ..network.analysis import extract_centrality
+    from guidedLP.network.analysis import extract_centrality
     
     if not temporal_graphs:
         raise ValueError("temporal_graphs cannot be empty")

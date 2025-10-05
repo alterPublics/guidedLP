@@ -57,11 +57,9 @@ Documentation = "https://guided-label-propagation.readthedocs.io"
 Repository = "https://github.com/yourusername/guided-label-propagation.git"
 Issues = "https://github.com/yourusername/guided-label-propagation/issues"
 
-[tool.setuptools.packages.find]
-where = ["guidedLP/src"]
-
-[tool.setuptools.package-dir]
-"" = "guidedLP/src"
+[tool.setuptools]
+packages = ["guidedLP"]
+package-dir = {"guidedLP" = "guidedLP/src/guidedLP"}
 
 [tool.setuptools.package-data]
 "*" = ["*.md", "*.txt", "*.yml", "*.yaml"]

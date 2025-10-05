@@ -16,7 +16,24 @@ __version__ = "0.1.0"
 __author__ = "Your Name"
 __email__ = "your.email@example.com"
 
-# Main API imports will be added as modules are implemented
-# from .network import NetworkBuilder
-# from .glp import GuidedLabelPropagation  
-# from .common import IDMapper
+# Expose main functionality at package level
+# Users can import as: from guidedLP import guided_label_propagation, build_graph_from_edgelist
+
+# Core classes and functions
+try:
+    from common.id_mapper import IDMapper
+    from common.exceptions import (
+        GraphConstructionError, 
+        ValidationError, 
+        DataFormatError,
+        ConfigurationError
+    )
+    __all__ = ["IDMapper", "GraphConstructionError", "ValidationError", "DataFormatError", "ConfigurationError"]
+except ImportError:
+    # Fallback if relative imports don't work
+    __all__ = []
+
+# Note: Main functions like guided_label_propagation and build_graph_from_edgelist
+# should be imported directly from their modules:
+# from glp.propagation import guided_label_propagation
+# from network.construction import build_graph_from_edgelist, temporal_bipartite_to_unipartite

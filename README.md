@@ -22,6 +22,7 @@ This project provides efficient network analysis capabilities with a focus on **
 
 ### 📊 Comprehensive Network Toolkit
 - **Graph construction**: Unipartite and bipartite networks from edge lists
+- **Temporal bipartite projection**: Convert temporal bipartite to directed unipartite with causality preservation
 - **Network backboning**: Statistical significance filtering
 - **Centrality measures**: Degree, betweenness, closeness, eigenvector centrality
 - **Community detection**: Louvain algorithm integration
@@ -40,17 +41,25 @@ This project provides efficient network analysis capabilities with a focus on **
 - Python 3.9 or higher
 - Git (for development installation)
 
-### From PyPI (Recommended)
+### Development Installation
 
-```bash
-pip install guided-label-propagation
-```
-
-### From Source (Development)
+This package is currently in development. Install from source:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/guided-label-propagation.git
+git clone https://github.com/alterpublics/guided-label-propagation.git
+cd guided-label-propagation/guidedLP
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Install development dependencies (optional)
+pip install pytest pytest-cov ruff black mypy
+```
+
+### Running Examples
+
+All examples should be run from the main package directory:
 cd guided-label-propagation
 
 # Install in development mode
@@ -84,10 +93,14 @@ python -c "import guided_lp; print('Installation successful!')"
 ### Basic Example
 
 ```python
+import sys
 import polars as pl
-from src.network.construction import build_graph_from_edgelist
-from src.glp.propagation import guided_label_propagation
-from src.common.io_utils import export_results
+
+# Add the source directory to Python path
+sys.path.append('/path/to/guidedLabelPropagation/guidedLP/src')
+
+from network.construction import build_graph_from_edgelist
+from glp.propagation import guided_label_propagation
 
 # Load edge list data
 edges = pl.read_csv("network_data.csv")
@@ -125,10 +138,15 @@ print(f"Classified {len(results)} nodes with community probabilities")
 Try the library with sample data:
 
 ```python
+import sys
 import polars as pl
-from src.network.construction import build_graph_from_edgelist
-from src.glp.propagation import guided_label_propagation
 import json
+
+# Add the source directory to Python path  
+sys.path.append('./src')
+
+from network.construction import build_graph_from_edgelist
+from glp.propagation import guided_label_propagation
 
 # Load sample datasets
 edges = pl.read_csv("tests/fixtures/sample_edgelist.csv")
@@ -178,8 +196,12 @@ src/
 ### 1. Political Affiliation Analysis
 
 ```python
-# Analyze political leaning in social networks
-from src.glp.validation import train_test_split_validation
+# Analyze political leaning in social networks  
+import sys
+sys.path.append('./src')
+
+from glp.validation import train_test_split_validation
+from network.construction import build_graph_from_edgelist
 
 # Load political Twitter network
 political_edges = pl.read_csv("political_network.csv")
@@ -208,8 +230,11 @@ print(f"Political classification accuracy: {accuracy:.3f}")
 
 ```python
 # Track community evolution over time
-from src.timeseries.slicing import create_time_slices
-from src.timeseries.metrics import calculate_temporal_metrics
+import sys
+sys.path.append('./src')
+
+from timeseries.slicing import create_time_slices
+from timeseries.temporal_metrics import extract_temporal_metrics
 
 # Load temporal network data
 temporal_data = pl.read_csv("tests/fixtures/sample_temporal.csv")
@@ -255,12 +280,48 @@ for node_id, probabilities in results.items():
         print(f"{node_id}: Likely interdisciplinary researcher")
 ```
 
+### 4. Temporal Bipartite-to-Unipartite Conversion
+
+```python
+# Convert user-item interactions to user influence networks
+import sys
+sys.path.append('./src')
+
+from network.construction import temporal_bipartite_to_unipartite
+import polars as pl
+
+# Load temporal bipartite data (users interacting with items over time)
+data = pl.DataFrame({
+    "user": ["Alice", "Bob", "Charlie", "Alice", "Bob"],
+    "item": ["item1", "item1", "item1", "item2", "item2"], 
+    "timestamp": ["2024-01-01 09:00", "2024-01-01 11:00", "2024-01-01 13:00",
+                  "2024-01-02 10:00", "2024-01-02 15:00"]
+})
+
+# Convert to directed user-user influence network  
+influence_graph, user_mapper = temporal_bipartite_to_unipartite(
+    data,
+    source_col="user",
+    target_col="item",
+    timestamp_col="timestamp",
+    intermediate_col="item",    # Items disappear
+    projected_col="user",       # Users get connected
+    add_edge_weights=True       # Include temporal decay
+)
+
+print(f"Created {influence_graph.numberOfNodes()} user influence network")
+print(f"Temporal relationships: {influence_graph.numberOfEdges()} edges")
+
+# Expected edges: Alice → Bob → Charlie (temporal precedence preserved)
+```
+
 ## Use Cases
 
 - **Political Affiliation Analysis**: Identify political leaning of unknown users based on known partisan seed accounts
 - **Brand Affinity Detection**: Determine brand preferences in social networks using verified brand accounts as seeds  
 - **Research Community Mapping**: Map academic collaboration networks and identify research area affiliations
 - **Temporal Network Evolution**: Track how community structures evolve over time in dynamic networks
+- **Temporal Influence Networks**: Convert user-item interactions to user-user influence networks with proper temporal causality
 - **Content Recommendation**: Classify users for targeted content delivery
 - **Fraud Detection**: Identify suspicious accounts based on known fraudulent patterns
 

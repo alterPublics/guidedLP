@@ -5,6 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "guidedLP"
 version = "0.1.0"
+dynamic = []
 description = "Large-scale network analysis with Guided Label Propagation for computational social science"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -61,6 +62,9 @@ where = ["guidedLP/src"]
 
 [tool.setuptools.package-dir]
 "" = "guidedLP/src"
+
+[tool.setuptools.package-data]
+"*" = ["*.md", "*.txt", "*.yml", "*.yaml"]
 
 [tool.ruff]
 line-length = 88

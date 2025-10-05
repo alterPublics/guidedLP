@@ -131,6 +131,88 @@ print(f"User projection: {user_graph.numberOfNodes()} users, {user_graph.numberO
 print(f"Item projection: {item_graph.numberOfNodes()} items, {item_graph.numberOfEdges()} connections")
 ```
 
+### temporal_bipartite_to_unipartite()
+
+```python
+def temporal_bipartite_to_unipartite(
+    edgelist: Union[str, pl.DataFrame],
+    source_col: str = "source",
+    target_col: str = "target", 
+    timestamp_col: str = "timestamp",
+    weight_col: Optional[str] = None,
+    intermediate_col: str = "target",
+    projected_col: str = "source",
+    remove_self_loops: bool = True,
+    add_edge_weights: bool = True
+) -> Tuple[nk.Graph, IDMapper]
+```
+
+🕒 **Convert temporal bipartite edgelist to unipartite graph using temporal precedence.**
+
+This function transforms temporal bipartite networks (like user-item interactions over time) into directed unipartite networks that preserve temporal causality. Uses ascending timestamp sort combined with upper triangular matrix indexing to ensure proper temporal flow: **earlier events → later events**.
+
+**Parameters:**
+- `edgelist`: Path to CSV file or Polars DataFrame with temporal bipartite data
+- `source_col`: Name of source node column (default: "source")
+- `target_col`: Name of target node column (default: "target")
+- `timestamp_col`: Name of timestamp column for temporal ordering
+- `weight_col`: Name of weight column (optional)
+- `intermediate_col`: Column representing intermediate nodes that disappear in projection (default: "target")
+- `projected_col`: Column representing nodes to preserve and connect (default: "source")
+- `remove_self_loops`: Remove self-connections in result (default: True)
+- `add_edge_weights`: Calculate temporal decay weights (default: True)
+
+**Returns:**
+- `graph`: Directed NetworkIt graph with temporal influence relationships
+- `id_mapper`: Bidirectional mapping for projected nodes
+
+**Algorithm:**
+1. Groups edges by intermediate node (disappearing column)
+2. Within each group, sorts by timestamp in ascending order
+3. Creates directed edges using upper triangular matrix indices
+4. Results in proper temporal flow: earlier events → later events
+
+**Examples:**
+
+```python
+# Convert user-item temporal interactions to user influence network
+import polars as pl
+from src.network.construction import temporal_bipartite_to_unipartite
+
+# Sample temporal bipartite data
+data = pl.DataFrame({
+    "user": ["Alice", "Bob", "Charlie", "Alice", "Bob"],
+    "item": ["item1", "item1", "item1", "item2", "item2"], 
+    "timestamp": ["2024-01-01 09:00", "2024-01-01 11:00", "2024-01-01 13:00",
+                  "2024-01-02 10:00", "2024-01-02 15:00"]
+})
+
+# Convert to directed user-user influence network
+influence_graph, user_mapper = temporal_bipartite_to_unipartite(
+    data,
+    source_col="user",
+    target_col="item",
+    timestamp_col="timestamp",
+    intermediate_col="item",    # Items disappear
+    projected_col="user",       # Users get connected
+    add_edge_weights=True       # Include temporal decay
+)
+
+print(f"Influence network: {influence_graph.numberOfNodes()} users")
+print(f"Temporal relationships: {influence_graph.numberOfEdges()} edges")
+
+# Expected edges: Alice → Bob → Charlie (temporal precedence)
+```
+
+**Use Cases:**
+- **Social Media**: User-content → User-user information flow networks
+- **E-commerce**: User-item → User-user recommendation networks  
+- **Academia**: Author-paper → Author-author citation influence
+- **Communications**: User-topic → User-user discussion networks
+
+**Temporal Logic:**
+If users A and B both interact with the same item, and A interacts first, then edge A → B is created (A influences B). This preserves temporal causality and models information/influence flow.
+
 ### get_graph_info()
 
 ```python

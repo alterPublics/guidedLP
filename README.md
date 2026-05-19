@@ -201,13 +201,3 @@ for date, slice_edges in time_slices.items():
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
-### Summary
-- ✅ Commercial use allowed
-- ✅ Modification allowed
-- ✅ Distribution allowed
-- ✅ Private use allowed
-- ❌ No warranty provided
-- ❌ No liability accepted
-
-
-**We love computational social science**
